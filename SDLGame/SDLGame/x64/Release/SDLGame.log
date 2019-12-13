@@ -1,0 +1,7 @@
+﻿  Game.cpp
+  main.cpp
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 19 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  SDLGame.vcxproj -> C:\Users\Andrew\source\repos\SDLGame\x64\Release\SDLGame.exe
