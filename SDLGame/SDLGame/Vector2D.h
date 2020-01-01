@@ -18,6 +18,9 @@ public:
 	void addX(int x);
 	void addY(int y);
 
+	void reverseX();
+	void reverseY();
+
 	void reset();
 
 private:

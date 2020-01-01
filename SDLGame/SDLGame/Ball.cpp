@@ -1,70 +1,54 @@
 #include "Ball.h"
 
-Ball::Ball() : position_(0, 0), velocity_(0, 0),
+Ball::Ball() : position_(0, 0),
+velocity_(0, 0),
+rect_ { position_.getX(), position_.getY(), BALL_WIDTH, BALL_HEIGHT}
 {
-	ypos_ = 0;
-	xpos_ = 0;
-
-	yvel_ = 0;
-	xvel_ = 0;
-
-	collider_.x = 0;
-	collider_.y = 0;
-
-	collider_.w = BALL_WIDTH;
-	collider_.h = BALL_HEIGHT;
 }
 
-Ball::Ball(const int x, const int y)
+Ball::Ball(const int x, const int y) : position_(x, y),
+velocity_(0, 0),
+rect_{ position_.getX(), position_.getY(), BALL_WIDTH, BALL_HEIGHT }
 {
-	collider_.x = x;
-	collider_.y = y;
-
-	collider_.w = BALL_WIDTH;
-	collider_.h = BALL_HEIGHT;
-
-	xpos_ = collider_.x;
-	ypos_ = collider_.y;
-
 	std::random_device dev;
 	std::mt19937 rand_gen(dev());
 	std::uniform_int_distribution<> dist_x(0, 1);
 
 	if (dist_x(rand_gen) == 0)
 	{
-		xvel_ = -3;
+		velocity_.setX(-3);
 	}
 	else {
-		xvel_ = 3;
+		velocity_.setX(3);
 	}
 
 	std::uniform_int_distribution<> dist_y(1, 3);
-	yvel_ = dist_y(rand_gen);
+
+	velocity_.setY(dist_y(rand_gen));
 
 	if (dist_x(rand_gen) == 0)
 	{
-		yvel_ = -yvel_;
+		velocity_.reverseY();
 	}
 }
 
 void Ball::update()
 {
-	xpos_ += xvel_;
-	ypos_ += yvel_;
+	position_ += velocity_;
 
-	collider_.x = xpos_;
-	collider_.y = ypos_;
+	rect_.x = position_.getX();
+	rect_.y = position_.getY();
 
-	if (ypos_ < 0 || ypos_ + BALL_HEIGHT > 480)
+	if (position_.getY() < 0 || position_.getY() + BALL_HEIGHT > 480)
 	{
-		yvel_ = -yvel_;
+		velocity_.reverseY();
 	}
 }
 
 void Ball::draw(SDL_Renderer* renderer)
 {
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	SDL_RenderFillRect(renderer, &collider_);
+	SDL_RenderFillRect(renderer, &rect_);
 }
 
 bool Ball::collisionCheck(Paddle pad) const
@@ -75,11 +59,11 @@ bool Ball::collisionCheck(Paddle pad) const
 	const int topA = pad.getObject().y;
 	const int bottomA = pad.getObject().y + pad.getObject().h;
 
-	const int leftB = collider_.x;
-	const int rightB = collider_.x + collider_.w;
+	const int leftB = rect_.x;
+	const int rightB = rect_.x + rect_.w;
 
-	const int topB = collider_.y;
-	const int bottomB = collider_.y + collider_.h;
+	const int topB = rect_.y;
+	const int bottomB = rect_.y + rect_.h;
 
 	if (bottomA <= topB)
 	{
@@ -110,35 +94,37 @@ void Ball::reverse()
 	std::mt19937 rand_gen(dev());
 	const std::uniform_int_distribution<> xspeed(-3, 3);
 
-	if(xvel_ > 0)
+	if(velocity_.getX() > 0)
 	{
-		xvel_ += xspeed(rand_gen);
-		if (xvel_ <= 0)
+		velocity_.addX(xspeed(rand_gen));
+
+		if (velocity_.getX() <= 0)
 		{
-			xvel_ = 2;
+			velocity_.setX(2);
 		}
-		xvel_ = -xvel_;
+
+		velocity_.reverseX();
 	}
-	else if(xvel_ < 0)
+	else if(velocity_.getX() < 0)
 	{
-		xvel_ += xspeed(rand_gen);
-		if (xvel_ >= 0)
+		velocity_.addX(xspeed(rand_gen));
+
+		if (velocity_.getX() >= 0)
 		{
-			xvel_ = -2;
+			velocity_.setX(-2);
 		}
-		xvel_ = -xvel_;
+		velocity_.reverseX();
 	}
 
-	yvel_ += xspeed(rand_gen);
+	velocity_.addY(xspeed(rand_gen));
 }
 
 void Ball::reset()
 {
-	collider_.x = (680 / 2) + 5;
-	collider_.y = (680 / 2) + 5;
-
-	xpos_ = collider_.x;
-	ypos_ = collider_.y;
+	rect_.x = (680 / 2) - 5;
+	rect_.y = (480 / 2) + 5;
+	position_.setX(rect_.x);
+	position_.setY(rect_.y);
 
 	std::random_device dev;
 	std::mt19937 rand_gen(dev());
@@ -146,22 +132,23 @@ void Ball::reset()
 
 	if (dist_x(rand_gen) == 0)
 	{
-		xvel_ = -3;
+		velocity_.setX(-3);
 	}
-	else {
-		xvel_ = 3;
+	else 
+	{
+		velocity_.setX(3);
 	}
 
 	std::uniform_int_distribution<> dist_y(1, 3);
-	yvel_ = dist_y(rand_gen);
+	velocity_.setY(dist_y(rand_gen));
 
 	if (dist_x(rand_gen) == 0)
 	{
-		yvel_ = -yvel_;
+		velocity_.reverseY();
 	}
 }
 
-int Ball::position() const
+int Ball::position()
 {
-	return xpos_;
+	return position_.getX();
 }

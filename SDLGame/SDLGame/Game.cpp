@@ -4,8 +4,12 @@ Game::Game() : left_paddle(0, 240 - 50), right_paddle(680 - 10, 240 - 50), ball(
 {
 	SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE, &window_, &renderer_);
 	SDL_RenderSetLogicalSize(renderer_, SCREEN_WIDTH, SCREEN_HEIGHT);
-
 	is_running_ = true;
+	
+	container_[left] = &left_paddle;
+	container_[right] = &right_paddle;
+	container_[obj::ball] = &ball;
+
 }
 
 void Game::loop()
@@ -41,17 +45,22 @@ void Game::render()
 			SDL_RenderDrawPoint(renderer_, SCREEN_WIDTH / 2, y);
 		}
 	}
-	left_paddle.draw(renderer_);
-	right_paddle.draw(renderer_);
-	ball.draw(renderer_);
+
+	for (auto& i : container_)
+	{
+		i->draw(renderer_);
+	}
+
 	SDL_RenderPresent(renderer_);
 }
 
 void Game::update()
 {
-	left_paddle.update();
-	right_paddle.update();
-	ball.update();
+	for (auto& i : container_)
+	{
+		i->update();
+	}
+
 	if(ball.collisionCheck(left_paddle) || ball.collisionCheck(right_paddle))
 	{
 		ball.reverse();

@@ -15,7 +15,7 @@ public:
 	bool collisionCheck(Paddle pad) const;
 	void reverse();
 	void reset();
-	int position() const;
+	int position();
 
 	const int BALL_WIDTH = 10;
 	const int BALL_HEIGHT = 10;
@@ -24,11 +24,5 @@ private:
 	Vector2D position_;
 	Vector2D velocity_;
 
-	int xpos_;
-	int ypos_;
-
-	int xvel_;
-	int yvel_;
-
-	SDL_Rect collider_;
+	SDL_Rect rect_;
 };

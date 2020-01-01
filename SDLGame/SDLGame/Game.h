@@ -4,6 +4,7 @@
 #include "Ball.h"
 #include "Paddle.h"
 
+enum obj { left = 0, right, ball };
 const int SCREEN_WIDTH = 680;
 const int SCREEN_HEIGHT = 480;
 
@@ -29,6 +30,7 @@ private:
 	SDL_Window* window_ = nullptr;
 	SDL_Renderer* renderer_ = nullptr;
 	SDL_Event event_;
+	Object* container_[3];
 	Paddle left_paddle;
 	Paddle right_paddle;
 	Ball ball;

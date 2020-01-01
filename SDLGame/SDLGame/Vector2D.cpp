@@ -49,6 +49,16 @@ void Vector2D::addY(const int y)
 	y_ += y;
 }
 
+void Vector2D::reverseX()
+{
+	x_ = -x_;
+}
+
+void Vector2D::reverseY()
+{
+	y_ = -y_;
+}
+
 void Vector2D::reset()
 {
 	x_ = 0;
