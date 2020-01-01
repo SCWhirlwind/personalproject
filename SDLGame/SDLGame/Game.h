@@ -1,32 +1,35 @@
 #pragma once
 #include "SDL.h"
-#include "SDL_image.h"
-#include <iostream>
+#include  "Object.h"
+#include "Ball.h"
+#include "Paddle.h"
+
+const int SCREEN_WIDTH = 680;
+const int SCREEN_HEIGHT = 480;
 
 class Game
 {
 public:
 
-	Game() = default;
+	Game();
 	~Game() = default;
 
-	Game(const Game& copy) noexcept(false);
-	Game& operator=(const Game& rhs) noexcept(false);
-	Game(Game&& copy) noexcept;
-	Game& operator=(Game&& rhs) noexcept;
-
-	void init(const char* title, int width, int height, bool fullscreen);
-
-	void handle_events();
+	void loop();
 	void update();
-	bool running() const { return is_running_; }
-	void render() const;
+	void render();
+	void handleEvents();
 	void clean() const;
+
+	bool isRunning() const { return is_running_; }
 
 private:
 
 	bool is_running_ = false;
-	int cnt_ = 0;
+
 	SDL_Window* window_ = nullptr;
 	SDL_Renderer* renderer_ = nullptr;
+	SDL_Event event_;
+	Paddle left_paddle;
+	Paddle right_paddle;
+	Ball ball;
 };

@@ -1,108 +1,97 @@
 #include "Game.h"
 
-SDL_Texture* player_tex;
-SDL_Rect src_r;
-SDL_Rect dest_r;
-
-Game::~Game()
+Game::Game() : left_paddle(0, 240 - 50), right_paddle(680 - 10, 240 - 50), ball((680 / 2) + 5, (680 / 2) + 5)
 {
-	clean();
+	SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE, &window_, &renderer_);
+	SDL_RenderSetLogicalSize(renderer_, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	is_running_ = true;
 }
 
-Game::Game(const Game& copy) noexcept(false)
+void Game::loop()
 {
-	*this = copy;
-}
+	const int FPS = 60;
+	const int frameDelay = 1000 / FPS;
 
-Game& Game::operator=(const Game& rhs) noexcept(false)
-{
-	if (this != &rhs)
+	while (is_running_)
 	{
-		is_running_ = rhs.is_running_;
-		cnt_ = rhs.cnt_;
-		window_ = rhs.window_;
-		renderer_ = rhs.renderer_;
-	}
-	return *this;
-}
+		const Uint32 frameStart = SDL_GetTicks();
+		handleEvents();
+		update();
+		render();
 
-Game::Game(Game&& copy) noexcept
-{
-	*this = std::move(copy);
-}
+		const int frameTime = SDL_GetTicks() - frameStart;
 
-Game& Game::operator=(Game&& rhs) noexcept
-{
-	if(this != &rhs)
-	{
-		is_running_ = rhs.is_running_;
-		cnt_ = rhs.cnt_;
-		window_ = rhs.window_;
-		renderer_ = rhs.renderer_;
-	}
-	return *this;
-}
-
-void Game::init(const char* title, const int width, const int height, const bool fullscreen)
-{
-	auto flags = 0;
-
-	if(fullscreen)
-	{
-		flags = SDL_WINDOW_FULLSCREEN;
-	}
-
-	if(SDL_Init(SDL_INIT_EVERYTHING) == 0)
-	{
-		window_ = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, flags);
-		renderer_ = SDL_CreateRenderer(window_, - 1, 0);
-
-		if(renderer_)
+		if (frameDelay > frameTime)
 		{
-			SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 255);
+			SDL_Delay(frameDelay - frameTime);
 		}
-
-		is_running_ = true;
 	}
-
-	const auto temp_surface = IMG_Load("assets/raiden.png");
-	player_tex = SDL_CreateTextureFromSurface(renderer_, temp_surface);
-
-	if(!player_tex)
-	{
-		std::cout << "error";
-	}
-	SDL_FreeSurface(temp_surface);
 }
 
-void Game::handle_events()
+void Game::render()
 {
-	SDL_Event event;
-	SDL_PollEvent(&event);
-
-	switch (event.type)
+	SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
+	SDL_RenderClear(renderer_);
+	SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 255);
+	for (int y = 0; y < SCREEN_HEIGHT; ++y)
 	{
-	case SDL_QUIT:
-		is_running_ = false;
-		break;
-	default:
-		break;
+		if (y % 5)
+		{
+			SDL_RenderDrawPoint(renderer_, SCREEN_WIDTH / 2, y);
+		}
 	}
+	left_paddle.draw(renderer_);
+	right_paddle.draw(renderer_);
+	ball.draw(renderer_);
+	SDL_RenderPresent(renderer_);
 }
 
 void Game::update()
 {
-	cnt_++;
-	dest_r.h = 32;
-	dest_r.w = 32;
-	std::cout << cnt_ << std::endl;
+	left_paddle.update();
+	right_paddle.update();
+	ball.update();
+	if(ball.collisionCheck(left_paddle) || ball.collisionCheck(right_paddle))
+	{
+		ball.reverse();
+	}
+	if(ball.position() < -10 || ball.position() + 5 > SCREEN_WIDTH + 10)
+	{
+		ball.reset();
+	}
 }
 
-void Game::render() const
+void Game::handleEvents()
 {
-	SDL_RenderClear(renderer_);
-	SDL_RenderCopy(renderer_, player_tex, nullptr, &dest_r);
-	SDL_RenderPresent(renderer_);
+	while(SDL_PollEvent(&event_) > 0)
+	{
+		if (event_.type == SDL_QUIT)
+		{
+			is_running_ = false;
+		}
+
+		if (event_.type == SDL_KEYDOWN && event_.key.repeat == 0)
+		{
+			switch (event_.key.keysym.sym)
+			{
+			case SDLK_UP: right_paddle.up(); break;
+			case SDLK_DOWN: right_paddle.down(); break;
+			case SDLK_w: left_paddle.up(); break;
+			case SDLK_s: left_paddle.down(); break;
+			}
+		}
+		else if (event_.type == SDL_KEYUP && event_.key.repeat == 0)
+		{
+			switch (event_.key.keysym.sym)
+			{
+			case SDLK_UP: right_paddle.stop(); break;
+			case SDLK_DOWN: right_paddle.stop(); break;
+			case SDLK_w: left_paddle.stop(); break;
+			case SDLK_s: left_paddle.stop(); break;
+			}
+		}
+	}	
 }
 
 void Game::clean() const
